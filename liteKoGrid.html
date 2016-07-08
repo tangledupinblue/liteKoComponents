@@ -1,0 +1,137 @@
+<html>
+<head>
+    <script src="/scripts/knockout.js"></script>
+    <script src="https://code.jquery.com/jquery-3.0.0.js"></script>
+    <script src="/scripts/liteKoGrid.js"></script>
+</head>
+<body>
+
+
+<style>
+   .selected { background-color: yellow; }
+thead tr {
+    border:1px solid black;
+    background:lightgray;
+}tbody tr {
+    border:1px solid black;
+    cursor: pointer;
+}
+</style>
+
+
+
+<h3>4- Display in an editor</h3>
+
+<h3>5- Filter display by name</h3>
+<p>Filter: <input data-bind="value: filter, valueUpdate: 'afterkeydown'" /></p>
+
+<table id="mytable">
+    <thead>
+        <tr>
+            <th data-bind="sortGrid: { arr: filteredItems, prop: 'name' }">Name</th>
+            <th>Category</th>
+            <th data-bind="sortGrid: { arr: filteredItems, prop: 'price' }">Price</th>
+            <th>w/Tax</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody data-bind="template: { name: 'itemsTmpl', foreach: filteredItems }"></tbody>
+    <script id="itemsTmpl" type="text/html">
+        <tr data-bind="click: $root.selectItem.bind($root), css: { selected: isSelected }">
+            <td>
+                <input data-bind="value: name" />
+            </td>
+            <td>
+                <select data-bind="options: $root.categories, value: category"></select>
+            </td>
+            <td>
+                <input class="n" data-bind="value: price" />
+            </td>
+            <td class="n" data-bind="text: priceWithTax">
+            </td>
+            <td>
+                <a href="#" data-bind="click: $root.removeItem.bind($root)">Delete</a>
+            </td>
+        </tr>
+    </script>
+    <tr>
+        <td>
+            <a href="#" data-bind="click: addItem">Add Item</a>
+        </td>
+        <td></td>
+        <td class="n">Total: </td>
+        <td class="n" data-bind="text: total"></td>
+        <td></td>
+    </tr>
+</table>
+
+
+<script>
+function Item(name, category, price) {
+    var self = this;
+    self.name = ko.observable(name);
+    self.category = ko.observable(category);
+    self.price = ko.observable(price);
+    self.priceWithTax = ko.dependentObservable(function() {
+        return (self.price() * 1.05).toFixed(2);
+    }, self);
+    self.isSelected = ko.observable(false);
+}
+
+var PageModel = function() {
+    var self = this;
+    LiteKoGrid.call(self);
+
+    self.categories = ["Bread", "Dairy", "Fruits", "Vegetables"];
+    
+    self.addItem = function() {
+        self.items.push(new Item("New", "", 1));
+    };
+    self.removeItem = function(item) {
+        self.items.remove(item);
+    };
+}
+
+var viewModel = new PageModel();
+
+//ko.utils.arrayForEach - return a total by adding all prices
+viewModel.total = ko.dependentObservable(function() {
+    var total = 0;
+    ko.utils.arrayForEach(this.filteredItems(), function(item) {
+        var value = parseFloat(item.priceWithTax());
+        if (!isNaN(value)) {
+            total += value;
+        }
+    });
+    return total.toFixed(2);
+}, viewModel);
+
+//ko.utils.arrayMap - prepare items to be sent back to server
+viewModel.mappedItems = ko.dependentObservable(function() {
+    var items = ko.toJS(this.items);
+    return ko.utils.arrayMap(items, function(item) {
+        delete item.priceWithTax;
+        return item;
+    });
+}, viewModel);
+
+//a JSON string that we got from the server that wasn't automatically converted to an object
+var JSONdataFromServer = '[{"name":"Peach","category":"Fruits","price":1},{"name":"Plum","category":"Fruits","price":0.75},{"name":"Donut","category":"Bread","price":1.5},{"name":"Milk","category":"Dairy","price":4.50}]';
+
+//parse into an object
+var dataFromServer = ko.utils.parseJson(JSONdataFromServer);
+
+//do some basic mapping (without mapping plugin)
+var mappedData = ko.utils.arrayMap(dataFromServer, function(item) {
+    return new Item(item.name, item.category, item.price);
+});
+
+viewModel.items(mappedData);
+
+ko.applyBindings(viewModel);   
+   
+</script>
+
+
+</body>
+</html>
