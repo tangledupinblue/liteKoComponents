@@ -38,21 +38,23 @@ var LiteKoGrid = function() {
             var props = self.sortProp().split('.');
             for(var i in props){                
                 var propName = props[i];
-                var parenIndex = propName.indexOf('()');
-                if(parenIndex > 0) {
-                    //functions
-                    propName = propName.substring(0, parenIndex);
-                    rec1 = rec1[propName]();
-                    rec2 = rec2[propName]();
-                } else if (ko.isObservable(rec1[propName])) {
-                    //ko observables posing as properties
-                    rec1 = rec1[propName]();
-                    rec2 = rec2[propName]();
-                }
-                else {
-                    //properties
-                    rec1 = rec1[propName];
-                    rec2 = rec2[propName];
+                if (typeof propName == "string" && propName.length > 0) {
+                    var parenIndex = propName.indexOf('()');
+                    if(parenIndex > 0) {
+                        //functions
+                        propName = propName.substring(0, parenIndex);
+                        rec1 = rec1[propName]();
+                        rec2 = rec2[propName]();
+                    } else if (ko.isObservable(rec1[propName])) {
+                        //ko observables posing as properties
+                        rec1 = rec1[propName]();
+                        rec2 = rec2[propName]();
+                    }
+                    else {
+                        //properties
+                        rec1 = rec1[propName];
+                        rec2 = rec2[propName];
+                    }
                 }
             } 
             return rec1 === rec2 ? 0 : rec1 < rec2 ? -1 : 1;
@@ -75,6 +77,7 @@ var LiteKoGrid = function() {
                                 : val.toString().toLowerCase().indexOf(filter) !== -1;
                 });                
             });
+            //return self.sortProp() ? self.sort(filtered) : filters;
             return self.sort(filtered);         
         }
     });    
@@ -83,13 +86,9 @@ var LiteKoGrid = function() {
 ko.bindingHandlers.sortGrid = {
 	init: function(element, valueAccessor, allBindingsAccessor, viewModel, bindingContext) {
 		var asc = false;
-		element.style.cursor = 'pointer';
-		
-		element.onclick = function(){
-			console.log("click" + new Date());
-            
+		element.style.cursor = 'pointer';		
+		element.onclick = function(){            
             var value = valueAccessor();
-
             viewModel.asc(!viewModel.asc());
             viewModel.sortProp(value.prop);
         };

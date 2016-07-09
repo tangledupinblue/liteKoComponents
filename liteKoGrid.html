@@ -35,8 +35,7 @@ thead tr {
             <th></th>
         </tr>
     </thead>
-    <tbody data-bind="template: { name: 'itemsTmpl', foreach: filteredItems }"></tbody>
-    <script id="itemsTmpl" type="text/html">
+    <tbody data-bind="foreach: filteredItems">
         <tr data-bind="click: $root.selectItem.bind($root), css: { selected: isSelected }">
             <td>
                 <input data-bind="value: name" />
@@ -53,7 +52,7 @@ thead tr {
                 <a href="#" data-bind="click: $root.removeItem.bind($root)">Delete</a>
             </td>
         </tr>
-    </script>
+    </tbody>    
     <tr>
         <td>
             <a href="#" data-bind="click: addItem">Add Item</a>
