@@ -4,7 +4,7 @@
 
 var LiteEditDialog = function() {
     var self = this;
-    self.active = ko.observable(null),
+    self.active = ko.observable(null);
 	self._editing = null;
     //doesn't do anything at the moment
     self.errorMessage = ko.observable( null );    
@@ -35,46 +35,6 @@ var LiteEditDialog = function() {
         self.actions=null;
         self._editing = null;        
     };
-};
-
-//http://stackoverflow.com/questions/10535548/best-way-to-clone-observables
-// extends observable objects intelligently to clone edited items
-ko.utils.extendObservable = function ( target, source ) {
-    var prop, srcVal, tgtProp, srcProp,
-        isObservable = false;
-
-    for ( prop in source ) {
-
-        if ( !source.hasOwnProperty( prop ) ) {
-            continue;
-        }
-
-        if ( ko.isWriteableObservable( source[prop] ) ) {
-            isObservable = true;
-            srcVal = source[prop]();
-        } else if ( typeof ( source[prop] ) !== 'function' ) {
-            srcVal = source[prop];
-        }
-
-        if ( ko.isWriteableObservable( target[prop] ) ) {
-            target[prop]( srcVal );
-        } else if ( target[prop] === null || target[prop] === undefined ) {
-
-            target[prop] = isObservable ? ko.observable( srcVal ) : srcVal;
-
-        } else if ( typeof ( target[prop] ) !== 'function' ) {
-            target[prop] = srcVal;
-        }
-
-        isObservable = false;
-    }
-};
-
-// then finally the clone function
-ko.utils.clone = function(obj, emptyObj){
-    var json = ko.toJSON(obj);
-    var js = JSON.parse(json);
-    return ko.utils.extendObservable(emptyObj, js);
 };
 
 function widgetInvoke(element, callback) {

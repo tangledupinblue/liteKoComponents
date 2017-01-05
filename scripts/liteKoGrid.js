@@ -22,7 +22,9 @@ var LiteKoGrid = function() {
         if (self.selectedItem()) {
             self.selectedItem().isSelected(false);
         }
-        item.isSelected(true);
+        if (item) {
+            item.isSelected(true);
+        }
         self.selectedItem(item); 
     };
 
@@ -71,7 +73,7 @@ var LiteKoGrid = function() {
                 //return item.name().toLowerCase().indexOf(filter) !== -1;
                 return Object.keys(item).some(function (key) {
                     var val = ko.isObservable(item[key]) ? item[key]() : item[key];
-                    console.log(val);
+                    //console.log(val);
                     return  val == undefined || val == null 
                                 ? false 
                                 : val.toString().toLowerCase().indexOf(filter) !== -1;
@@ -93,6 +95,46 @@ ko.bindingHandlers.sortGrid = {
             viewModel.sortProp(value.prop);
         };
     }
+};
+
+//http://stackoverflow.com/questions/10535548/best-way-to-clone-observables
+// extends observable objects intelligently to clone edited items
+ko.utils.extendObservable = function ( target, source ) {
+    var prop, srcVal, tgtProp, srcProp,
+        isObservable = false;
+
+    for ( prop in source ) {
+
+        if ( !source.hasOwnProperty( prop ) ) {
+            continue;
+        }
+
+        if ( ko.isWriteableObservable( source[prop] ) ) {
+            isObservable = true;
+            srcVal = source[prop]();
+        } else if ( typeof ( source[prop] ) !== 'function' ) {
+            srcVal = source[prop];
+        }
+
+        if ( ko.isWriteableObservable( target[prop] ) ) {
+            target[prop]( srcVal );
+        } else if ( target[prop] === null || target[prop] === undefined ) {
+
+            target[prop] = isObservable ? ko.observable( srcVal ) : srcVal;
+
+        } else if ( typeof ( target[prop] ) !== 'function' ) {
+            target[prop] = srcVal;
+        }
+
+        isObservable = false;
+    }
+};
+
+// then finally the clone function
+ko.utils.clone = function(obj, emptyObj){
+    var json = ko.toJSON(obj);
+    var js = JSON.parse(json);
+    return ko.utils.extendObservable(emptyObj, js);
 };
 
 
