@@ -56,7 +56,7 @@ thead tr {
                 <a href="#" data-bind="click: $root.editItem.bind($root)">Edit</a>
             </td>
             <td>
-                <a href="#" data-bind="click: $root.removeItem.bind($root)">Delete</a>
+                <a href="#" data-bind="click: $root.deleteItem.bind($root)">Delete</a>
             </td>
         </tr>
     </tbody>
@@ -108,7 +108,7 @@ function Item(name, category, price) {
     self.priceWithTax = ko.dependentObservable(function() {
         return (self.price() * 1.05).toFixed(2);
     }, self);
-    self.isSelected = ko.observable(false);
+    //self.isSelected = ko.observable(false);
 }
 
 var PageModel = function() {
@@ -117,8 +117,8 @@ var PageModel = function() {
 
     self.categories = ["Bread", "Dairy", "Fruits", "Vegetables"];
 
-    self.removeItem = function(item) {
-        self.items.remove(item);
+    self.deleteItem = function(item) {
+        self.removeItem(item);
     };
 
     self.liteDialog = new LiteEditDialog();
@@ -129,7 +129,7 @@ var PageModel = function() {
         //and callbacks for update and cancel
         self.liteDialog.edit(newItem, new Item(),
             function() {
-                self.items.push(newItem);
+                self.pushItem(newItem);
             },function() {
             });
     };
@@ -178,7 +178,7 @@ var mappedData = ko.utils.arrayMap(dataFromServer, function(item) {
     return new Item(item.name, item.category, item.price);
 });
 
-viewModel.items(mappedData);
+viewModel.setItems(mappedData);
 
 ko.applyBindings(viewModel);   
    

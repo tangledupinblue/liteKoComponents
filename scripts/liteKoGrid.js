@@ -14,9 +14,31 @@ var LiteKoGrid = function() {
     self.sortProp = ko.observable("");   
     self.updating = false;
     
-    self.items = ko.observableArray([]),
+    self._items = ko.observableArray([]),
     self.selectedItem = ko.observable(null),
     self.filter = ko.observable(""),
+
+    self.makeSelectable = function(item) {
+        if (item.isSelected == undefined) { item.isSelected = ko.observable(false) }
+        return item; 
+    }
+
+    self.setItems = function(arr) {
+        //expecting items with observable props as per example as an array...
+        //we check to make sure that they have a prop "isSelected" - and add if not
+        arr.forEach((i) => { if (i.isSelected == undefined) 
+            { i.isSelected = ko.observable(false) } 
+        });
+        self._items(arr);
+    };
+
+    self.pushItem = function(item) {
+        self._items.push(self.makeSelectable(item));
+    };
+
+    self.removeItem = function(item) {
+        self._items.remove(item);
+    };
 
     self.selectItem = function(item) {
         if (self.selectedItem()) {
@@ -66,9 +88,9 @@ var LiteKoGrid = function() {
     self.filteredItems = ko.computed(function() {
         var filter = self.filter().toLowerCase();
         if (!filter) {
-            return self.sort(self.items());
+            return self.sort(self._items());
         } else {
-            var filtered = ko.utils.arrayFilter(self.items(), function(item) {
+            var filtered = ko.utils.arrayFilter(self._items(), function(item) {
                 //return ko.utils.stringStartsWith(item.name().toLowerCase(), filter);
                 //return item.name().toLowerCase().indexOf(filter) !== -1;
                 return Object.keys(item).some(function (key) {
